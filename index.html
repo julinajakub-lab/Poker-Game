@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f2a22">
+<title>Brno Chip Table</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;700;800&family=Figtree:wght@400;600;700&display=swap">
+<style>
+:root{
+  --felt:#0f2a22; --felt-2:#16362c; --rail:#0a1d17; --line:#24493d;
+  --ivory:#efe9d8; --muted:#9db3a8; --brass:#e0b04a; --red:#d4483b; --blue:#3f7fd0; --ok:#5cc28a;
+  --f-num:"Saira Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--felt);color:var(--ivory);margin:0}
+body{font-family:var(--f-body);font-size:15px;line-height:1.4;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-top:calc(12px + env(safe-area-inset-top,0px));padding-bottom:170px;max-width:560px;margin:0 auto;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+button{font:inherit;color:inherit;cursor:pointer;border:0;border-radius:10px;min-height:46px;padding:0 14px;font-weight:700}
+button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+button:disabled{opacity:.35;cursor:default}
+input{font:inherit;color:var(--ivory);background:var(--rail);border:1px solid var(--line);border-radius:8px;padding:10px;min-height:44px;width:100%;min-width:0}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tag{font-size:12px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
+.live{display:inline-flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--red)}
+.dot.on{background:var(--ok);box-shadow:0 0 0 3px rgba(92,194,138,.2)}
+.code{font-family:var(--f-num);font-size:18px;font-weight:700;letter-spacing:.12em;background:var(--rail);border:1px solid var(--line);border-radius:8px;padding:4px 10px;min-height:36px}
+.pot{text-align:center;padding:18px 0 14px}
+.pot .amt{font-family:var(--f-num);font-weight:800;font-size:64px;line-height:1;color:var(--brass)}
+.pot .sub{color:var(--muted);font-size:14px;margin-top:6px}
+.street{display:flex;justify-content:center;gap:6px;margin-top:10px;flex-wrap:wrap}
+.street span{font-size:12px;text-transform:uppercase;letter-spacing:.08em;padding:4px 9px;border-radius:99px;border:1px solid var(--line);color:var(--muted)}
+.street span.on{background:var(--ivory);color:var(--felt);border-color:var(--ivory);font-weight:700}
+.seats{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.seat{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;background:var(--felt-2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;text-align:left;min-height:62px;width:100%}
+.seat .nm{font-weight:700;font-size:16px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}
+.seat .st{font-family:var(--f-num);font-size:26px;font-weight:700;line-height:1}
+.seat .bet{font-size:13px;color:var(--brass);margin-top:2px;font-weight:600}
+.seat .right{text-align:right}
+.seat.turn{border-color:var(--brass);box-shadow:0 0 0 2px var(--brass) inset}
+.seat.folded{opacity:.42}
+.seat.out{opacity:.3}
+.seat.pick{border-color:var(--ok);box-shadow:0 0 0 2px var(--ok) inset}
+.seat.inelig{opacity:.3}
+.chip{font-size:11px;font-weight:800;border-radius:99px;padding:2px 7px;line-height:1.3}
+.c-d{background:var(--ivory);color:var(--felt)}
+.c-sb{background:var(--blue);color:#fff}
+.c-bb{background:var(--red);color:#fff}
+.c-ai{background:var(--brass);color:var(--rail)}
+.c-f{border:1px solid var(--muted);color:var(--muted)}
+.c-me{border:1px solid var(--ok);color:var(--ok)}
+.rail{position:fixed;left:0;right:0;bottom:0;background:var(--rail);border-top:1px solid var(--line);padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));z-index:5}
+.rail-in{max-width:528px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.who{font-size:14px;color:var(--muted)}
+.who b{color:var(--ivory)}
+.row{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(70px,1fr))}
+.b-fold{background:#3a2a28}
+.b-call{background:var(--ivory);color:var(--felt)}
+.b-raise{background:var(--brass);color:var(--rail)}
+.b-all{background:var(--red);color:#fff}
+.b-ghost{background:var(--felt-2);border:1px solid var(--line)}
+.b-ok{background:var(--ok);color:var(--rail)}
+.raise-amt{display:flex;align-items:center;gap:8px}
+.raise-amt button{min-width:52px}
+.raise-amt input{text-align:center;font-family:var(--f-num);font-size:24px;font-weight:700}
+.panel{background:var(--felt-2);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;margin-top:12px}
+.panel h2{font-family:var(--f-num);font-size:28px;margin:0;letter-spacing:.02em}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:4px}
+.names{display:flex;flex-direction:column;gap:6px}
+.nameRow{display:flex;gap:6px}
+.nameRow button{min-height:44px;background:var(--rail);border:1px solid var(--line);font-weight:600}
+.note{font-size:13px;color:var(--muted);margin:0}
+.log{font-size:13px;color:var(--muted);margin-top:14px;display:flex;flex-direction:column;gap:2px}
+.adj input{width:110px;text-align:right;font-family:var(--f-num);font-size:20px}
+.overlay{position:fixed;inset:0;background:rgba(5,14,11,.85);z-index:9;display:flex;align-items:flex-end;justify-content:center;padding:16px max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.sheet{background:var(--felt-2);border:1px solid var(--line);border-radius:16px;padding:16px;width:100%;max-width:528px;display:flex;flex-direction:column;gap:8px;max-height:85vh;overflow:auto}
+.sheet button{width:100%;text-align:left}
+.banner{background:var(--rail);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--muted);margin-top:10px}
+.hero{text-align:center;padding:28px 0 8px}
+.hero h1{font-family:var(--f-num);font-size:44px;margin:0;line-height:1}
+.hero p{color:var(--muted);margin:8px 0 0}
+.potlist{display:flex;flex-direction:column;gap:4px;font-size:14px}
+.potlist div{display:flex;justify-content:space-between;gap:8px}
+.potlist .cur{color:var(--brass);font-weight:700}
+.potlist .done{color:var(--muted);text-decoration:line-through}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="rail" id="rail" hidden><div class="rail-in" id="railIn"></div></div>
+<div class="overlay" id="ov" hidden><div class="sheet" id="sheet"></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js"></script>
+<script>
+"use strict";
+const STREETS=["Pre-flop","Flop","Turn","River"];
+const PREFIX="brnochiptable-";
+const $=s=>document.querySelector(s);
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const clone=o=>o==null?o:JSON.parse(JSON.stringify(o));
+const fmt=n=>Number(n||0).toLocaleString("cs-CZ");
+const LS={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+/* ================= state & ui flags ================= */
+let S=null, rev=0, role=null /* host|guest */, code=null, connected=false;
+let raiseOpen=false, raiseVal=0, adjustMode=false, picks=new Set(), setupDraft=null;
+let me=LS.get("cht-me"); // seat id this phone belongs to (optional)
+
+/* ================= networking ================= */
+let peer=null, conns=new Set(), hostConn=null, retryT=null;
+function newCode(){const a="ABCDEFGHJKMNPQRSTUVWXYZ23456789";let c="";for(let i=0;i<4;i++)c+=a[Math.floor(Math.random()*a.length)];return c}
+
+function startHost(c,restore){
+  role="host"; code=c; if(restore){S=restore.state;rev=restore.rev||0}
+  location.hash=code; LS.set("cht-host",{code,rev,state:S});
+  peer=new Peer(PREFIX+code);
+  peer.on("open",()=>{connected=true;render()});
+  peer.on("connection",conn=>{
+    conn.on("open",()=>{conns.add(conn);conn.send({t:"state",rev,state:S});render()});
+    conn.on("data",m=>{
+      if(m&&m.t==="propose"){
+        if(m.base===rev){applyHost(m.state)}
+        else conn.send({t:"state",rev,state:S});
+      }
+    });
+    conn.on("close",()=>{conns.delete(conn);render()});
+    conn.on("error",()=>{conns.delete(conn)});
+  });
+  peer.on("disconnected",()=>{connected=false;render();setTimeout(()=>{try{peer.reconnect()}catch(e){}},1500)});
+  peer.on("error",e=>{
+    if(e.type==="unavailable-id"&&!restore){peer.destroy();startHost(newCode())}
+    else if(e.type==="unavailable-id"){connected=false;render();setTimeout(()=>{peer.destroy();startHost(code,{state:S,rev})},3000)}
+    else {connected=false;render()}
+  });
+  keepAwake(); render();
+}
+function applyHost(state){
+  rev++; S=state; LS.set("cht-host",{code,rev,state:S});
+  for(const c of conns){try{c.send({t:"state",rev,state:S})}catch(e){}}
+  render();
+}
+function startGuest(c){
+  role="guest"; code=c; location.hash=code;
+  peer=new Peer();
+  peer.on("open",connectHost);
+  peer.on("disconnected",()=>{connected=false;render();setTimeout(()=>{try{peer.reconnect()}catch(e){}},1500)});
+  peer.on("error",e=>{connected=false;render();if(e.type==="peer-unavailable")retry()});
+  keepAwake(); render();
+}
+function connectHost(){
+  hostConn=peer.connect(PREFIX+code,{reliable:true});
+  hostConn.on("open",()=>{connected=true;render()});
+  hostConn.on("data",m=>{if(m&&m.t==="state"){rev=m.rev;S=m.state;render()}});
+  hostConn.on("close",()=>{connected=false;render();retry()});
+}
+function retry(){clearTimeout(retryT);retryT=setTimeout(()=>{if(!connected&&peer&&!peer.destroyed){if(peer.disconnected){try{peer.reconnect()}catch(e){}}else connectHost()}},2500)}
+function commit(next,keepUndo=true){
+  if(keepUndo){const p=clone(S);if(p)delete p.prev;next.prev=p||null}
+  if(role==="host")applyHost(next);
+  else{
+    if(!connected||!hostConn)return flash("Not connected to the host phone yet");
+    hostConn.send({t:"propose",base:rev,state:next});
+    S=next; render(); // optimistic; host echo replaces it
+  }
+}
+let wake=null;
+async function keepAwake(){try{wake=await navigator.wakeLock?.request("screen")}catch(e){}}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){keepAwake();if(role==="guest"&&!connected)retry()}});
+function flash(t){const r=$("#railIn");const d=document.createElement("div");d.className="who";d.textContent=t;r.prepend(d);setTimeout(()=>d.remove(),2500)}
+
+/* ================= poker logic ================= */
+const live=p=>!p.out&&!p.folded;
+const canAct=p=>live(p)&&!p.allin;
+function nextIdx(s,i,pred){const n=s.players.length;for(let k=1;k<=n;k++){const j=((i+k)%n+n)%n;if(pred(s.players[j],j))return j}return -1}
+function addLog(s,t){s.log=[t,...(s.log||[])].slice(0,10)}
+function pay(s,i,amt){const p=s.players[i];amt=Math.max(0,Math.min(amt,p.stack));p.stack-=amt;p.bet+=amt;p.total+=amt;if(p.stack===0)p.allin=true;return amt}
+const potTotal=s=>s.pot+s.players.reduce((a,p)=>a+p.bet,0);
+
+function newGame(names,start,sb,bb){
+  const s={players:names.map((n,i)=>({id:"p"+i+Date.now().toString(36),name:n,stack:start,bet:0,total:0,folded:false,allin:false,out:false,acted:false})),
+    pot:0,dealer:-1,turn:-1,street:0,currentBet:0,minRaise:bb,sb,bb,hand:0,status:"done",start,log:[]};
+  return startHand(s);
+}
+function startHand(s){
+  s=clone(s); delete s.prev;
+  s.players.forEach(p=>{p.out=p.stack<=0;p.bet=0;p.total=0;p.folded=false;p.allin=false;p.acted=false});
+  const seated=s.players.filter(p=>!p.out);
+  if(seated.length<2){s.status="over";return s}
+  s.hand++; s.pot=0; s.street=0; s.pots=null; s.potIdx=0;
+  s.dealer=nextIdx(s,s.dealer<0?s.players.length-1:s.dealer,p=>!p.out);
+  let sbI,bbI;
+  if(seated.length===2){sbI=s.dealer;bbI=nextIdx(s,sbI,p=>!p.out)}
+  else{sbI=nextIdx(s,s.dealer,p=>!p.out);bbI=nextIdx(s,sbI,p=>!p.out)}
+  s.sbI=sbI;s.bbI=bbI;
+  pay(s,sbI,s.sb);pay(s,bbI,s.bb);
+  s.currentBet=Math.max(s.players[sbI].bet,s.players[bbI].bet);s.minRaise=s.bb;
+  s.turn=nextIdx(s,bbI,canAct);
+  s.status="betting";
+  addLog(s,`Hand ${s.hand}: ${s.players[s.dealer].name} deals`);
+  return afterAction(s,true);
+}
+function collect(s){s.players.forEach(p=>{s.pot+=p.bet;p.bet=0;p.acted=false});s.currentBet=0;s.minRaise=s.bb}
+
+/* Build main pot + side pots from what everyone put in this hand */
+function buildPots(s){
+  const ps=s.players.filter(p=>p.total>0);
+  const levels=[...new Set(ps.map(p=>p.total))].sort((a,b)=>a-b);
+  let prev=0;const pots=[];
+  for(const L of levels){
+    let amt=0;ps.forEach(p=>{amt+=Math.min(p.total,L)-Math.min(p.total,prev)});
+    const elig=s.players.filter(p=>live(p)&&p.total>=L).map(p=>p.id);
+    if(amt>0){
+      const last=pots[pots.length-1];
+      if(!elig.length&&last)last.amount+=amt;
+      else if(last&&last.elig.join()===elig.join())last.amount+=amt;
+      else pots.push({amount:amt,elig,winners:null});
+    }
+    prev=L;
+  }
+  return pots;
+}
+function toAward(s){
+  collect(s); s.turn=-1; s.status="award"; s.pots=buildPots(s); s.potIdx=0;
+  autoResolve(s); return s;
+}
+// pots with a single eligible player pay out by themselves (uncalled chips, everyone folded)
+function autoResolve(s){
+  while(s.potIdx<s.pots.length&&s.pots[s.potIdx].elig.length===1){payPot(s,s.potIdx,s.pots[s.potIdx].elig)}
+  if(s.potIdx>=s.pots.length)finishHand(s);
+}
+function payPot(s,k,ids){
+  const pot=s.pots[k];const w=s.players.filter(p=>ids.includes(p.id));
+  const share=Math.floor(pot.amount/w.length);let rem=pot.amount-share*w.length;
+  w.forEach(p=>p.stack+=share);
+  if(rem){for(let k2=1;k2<=s.players.length;k2++){const p=s.players[(s.dealer+k2)%s.players.length];if(ids.includes(p.id)){p.stack+=rem;break}}}
+  pot.winners=ids;s.pot-=pot.amount;s.potIdx=k+1;
+  const label=s.pots.length>1?(k===0?"main pot":`side pot ${k}`):"the pot";
+  addLog(s,`${w.map(p=>p.name).join(" + ")} win${w.length>1?"":"s"} ${label} (${fmt(pot.amount)})`);
+}
+function finishHand(s){s.status=s.players.filter(p=>p.stack>0).length<2?"over":"done";s.pot=0;s.turn=-1}
+
+function afterAction(s,fresh){
+  const alive=s.players.map((p,i)=>i).filter(i=>live(s.players[i]));
+  if(alive.length===1)return toAward(s);
+  const actors=alive.filter(i=>!s.players[i].allin);
+  const done=actors.every(i=>{const p=s.players[i];return p.acted&&p.bet===s.currentBet});
+  const lone=actors.length<=1&&actors.every(i=>s.players[i].bet>=s.currentBet);
+  if((!fresh&&(done||lone))||(fresh&&actors.length===0)){
+    if(s.street>=3||actors.length<=1){if(s.street<3)addLog(s,"Everyone's all in: deal out the board");return toAward(s)}
+    collect(s); s.street++; s.turn=nextIdx(s,s.dealer,canAct); return s;
+  }
+  if(!fresh)s.turn=nextIdx(s,s.turn,p=>canAct(p)&&(!p.acted||p.bet<s.currentBet));
+  if(s.turn<0)return toAward(s);
+  return s;
+}
+function act(kind,to){
+  const s=clone(S);const i=s.turn;const p=s.players[i];if(!p)return;
+  const toCall=s.currentBet-p.bet;
+  if(kind==="fold"){p.folded=true;addLog(s,`${p.name} folds`)}
+  else if(kind==="call"){const a=pay(s,i,toCall);addLog(s,a?(p.allin?`${p.name} calls all in (${fmt(a)})`:`${p.name} calls ${fmt(a)}`):`${p.name} checks`)}
+  else{
+    const opening=s.currentBet===0;
+    let target=kind==="allin"?p.bet+p.stack:to;
+    target=Math.min(target,p.bet+p.stack);
+    pay(s,i,target-p.bet);
+    if(p.bet>s.currentBet){const inc=p.bet-s.currentBet;if(inc>=s.minRaise){s.minRaise=inc;s.players.forEach((q,j)=>{if(j!==i)q.acted=false})}else{s.players.forEach((q,j)=>{if(j!==i&&q.bet<p.bet)q.acted=false})}s.currentBet=p.bet}
+    addLog(s,p.allin?`${p.name} all in (${fmt(p.bet)})`:`${p.name} ${opening?"bets":"raises to"} ${fmt(p.bet)}`);
+  }
+  p.acted=true; raiseOpen=false;
+  commit(afterAction(s,false));
+}
+
+/* ================= render ================= */
+function header(){
+  const n=role==="host"?conns.size:null;
+  return `<div class="top"><span class="live tag"><span class="dot ${connected?"on":""}"></span>${connected?(role==="host"?`Hosting · ${n} phone${n===1?"":"s"} joined`:"Live"):"Connecting…"}</span>
+  ${code?`<button class="code" id="shareBtn" aria-label="Share table code">${code}</button>`:""}</div>`;
+}
+function lobbyView(){
+  return `<div class="hero"><h1>Brno Chip Table</h1><p>Chips on every phone. No chips on the table.</p></div>
+  <div class="panel"><h2>Host the table</h2><p class="note">One phone hosts. Keep it plugged in with the screen on while you play.</p><button class="b-raise" id="hostBtn">Host a new table</button></div>
+  <div class="panel"><h2>Join a table</h2><label for="joinCode">Table code</label><input id="joinCode" autocomplete="off" autocapitalize="characters" maxlength="6" placeholder="e.g. K7QM"><button class="b-call" id="joinBtn">Join</button></div>`;
+}
+function setupView(){
+  const d=setupDraft;
+  return `<div class="panel"><h2>New game</h2>
+  <div class="names" id="names">${d.names.map((n,i)=>`<div class="nameRow"><input id="nm${i}" value="${esc(n)}" aria-label="Player ${i+1}"><button data-rm="${i}" aria-label="Remove ${esc(n)}">✕</button></div>`).join("")}</div>
+  <button class="b-ghost" id="addP">+ Add player</button>
+  <div class="grid3"><div><label for="stk">Stack</label><input id="stk" inputmode="numeric" value="${d.start}"></div>
+  <div><label for="sb">Small blind</label><input id="sb" inputmode="numeric" value="${d.sb}"></div>
+  <div><label for="bb">Big blind</label><input id="bb" inputmode="numeric" value="${d.bb}"></div></div>
+  <button class="b-raise" id="go">Shuffle up and deal</button>
+  ${S&&S.players?`<button class="b-ghost" id="cancelSetup">Back to the table</button>`:""}
+  <p class="note">Seat order is the order above, going clockwise.</p></div>`;
+}
+function badge(s,i){const p=s.players[i];let b="";
+  if(p.id===me)b+=`<span class="chip c-me">YOU</span>`;
+  if(s.status!=="over"&&i===s.dealer)b+=`<span class="chip c-d">D</span>`;
+  if(s.status==="betting"&&s.street===0){if(i===s.sbI)b+=`<span class="chip c-sb">SB</span>`;if(i===s.bbI)b+=`<span class="chip c-bb">BB</span>`}
+  if(p.allin&&!p.folded&&s.status!=="done")b+=`<span class="chip c-ai">ALL IN</span>`;
+  if(p.folded&&s.status!=="done")b+=`<span class="chip c-f">FOLD</span>`;
+  if(p.out)b+=`<span class="chip c-f">OUT</span>`;
+  return b}
+function render(){
+  const app=$("#app");
+  if(!role){app.innerHTML=lobbyView();$("#rail").hidden=true;bindLobby();return}
+  if(setupDraft){app.innerHTML=header()+setupView();$("#rail").hidden=true;bindSetup();bindCommon();return}
+  if(!S||!S.players){
+    app.innerHTML=header()+(role==="host"?`<div class="panel"><h2>Table ${code} is open</h2><p class="note">Friends open this same page and join with code <b>${code}</b>, or tap the code above to share a link.</p><button class="b-raise" id="setupBtn">Set up players</button></div>`
+      :`<div class="banner">${connected?"Joined. Waiting for the host to set up the game…":"Looking for table "+code+"… make sure the host phone has the page open."}</div>`);
+    $("#rail").hidden=true;bindCommon();$("#setupBtn")?.addEventListener("click",openSetup);return}
+  const s=S, toAct=s.players[s.turn];
+  const curPot=s.status==="award"&&s.pots?s.pots[s.potIdx]:null;
+  let h=header();
+  h+=`<div class="pot"><div class="tag">Hand ${s.hand} · Blinds ${fmt(s.sb)}/${fmt(s.bb)}</div><div class="amt num">${fmt(s.status==="award"?s.pot:potTotal(s))}</div>
+  <div class="sub">${s.status==="award"?"Showdown":s.status==="over"?"Game over":s.status==="done"?"Hand finished":"In the pot"}</div>
+  ${s.status==="betting"?`<div class="street">${STREETS.map((t,i)=>`<span class="${i===s.street?"on":""}">${t}</span>`).join("")}</div>`:""}</div>`;
+  if(s.status==="award"&&s.pots&&s.pots.length>1){
+    h+=`<div class="panel potlist">${s.pots.map((p,k)=>`<div class="${k===s.potIdx?"cur":k<s.potIdx?"done":""}"><span>${k===0?"Main pot":"Side pot "+k} · ${p.elig.length} in</span><span class="num">${fmt(p.amount)}</span></div>`).join("")}</div>`;
+  }
+  h+=`<div class="seats">`+s.players.map((p,i)=>{
+    const inelig=curPot&&!curPot.elig.includes(p.id);
+    const cls=["seat",i===s.turn&&s.status==="betting"?"turn":"",p.folded&&s.status!=="done"?"folded":"",p.out?"out":"",picks.has(p.id)?"pick":"",inelig&&!p.folded?"inelig":""].join(" ");
+    const right=adjustMode?`<div class="adj"><input id="adj${i}" inputmode="numeric" value="${p.stack}" aria-label="${esc(p.name)} stack"></div>`:`<div class="right"><div class="st">${fmt(p.stack)}</div>${p.bet?`<div class="bet num">bet ${fmt(p.bet)}</div>`:""}</div>`;
+    return `<${adjustMode?"div":"button"} class="${cls}" data-seat="${i}"><div class="nm">${esc(p.name)} ${badge(s,i)}</div>${right}</${adjustMode?"div":"button"}>`}).join("")+`</div>`;
+  if(s.log?.length)h+=`<div class="log">${s.log.slice(0,6).map(l=>`<div>${esc(l)}</div>`).join("")}</div>`;
+  app.innerHTML=h;
+
+  let rh="";
+  if(adjustMode){rh=`<div class="who">Type the correct stacks, then save (rebuys or fixes).</div><div class="row"><button class="b-ghost" id="adjCancel">Cancel</button><button class="b-ok" id="adjSave">Save stacks</button></div>`}
+  else if(s.status==="betting"&&toAct){
+    const toCall=Math.min(s.currentBet-toAct.bet,toAct.stack);
+    const minTo=Math.min(s.currentBet+s.minRaise,toAct.bet+toAct.stack);
+    const isMe=me&&toAct.id===me;
+    if(raiseOpen){
+      const pot=potTotal(s);
+      rh=`<div class="who"><b>${esc(toAct.name)}</b> ${s.currentBet?"raise":"bet"} to · min ${fmt(minTo)}, max ${fmt(toAct.bet+toAct.stack)}</div>
+      <div class="raise-amt"><button class="b-ghost" id="rMinus" aria-label="Less">−</button><input id="rVal" inputmode="numeric" value="${raiseVal}" aria-label="Amount"><button class="b-ghost" id="rPlus" aria-label="More">+</button></div>
+      <div class="row"><button class="b-ghost" data-rto="${minTo}">Min</button><button class="b-ghost" data-rto="${s.currentBet+Math.round((pot+toCall)/2)}">½ pot</button><button class="b-ghost" data-rto="${s.currentBet+pot+toCall}">Pot</button></div>
+      <div class="row"><button class="b-ghost" id="rBack">Back</button><button class="b-raise" id="rGo">${s.currentBet?"Raise":"Bet"}</button></div>`;
+    }else{
+      rh=`<div class="who">${isMe?"<b>Your turn</b>":`<b>${esc(toAct.name)}</b> to act`}${toCall>0?` · ${fmt(toCall)} to call`:""}</div>
+      <div class="row"><button class="b-fold" data-act="fold">Fold</button><button class="b-call" data-act="call">${toCall>0?(toCall>=toAct.stack?"Call all in":"Call "+fmt(toCall)):"Check"}</button>
+      <button class="b-raise" id="openRaise" ${toAct.stack<=toCall?"disabled":""}>${s.currentBet?"Raise":"Bet"}</button><button class="b-all" data-act="allin">All in</button></div>`;
+    }
+  }else if(s.status==="award"&&curPot){
+    const name=s.pots.length>1?(s.potIdx===0?"main pot":"side pot "+s.potIdx):"pot";
+    rh=`<div class="who">Who wins the ${name}? Tap the winner, or two or more to split.</div><button class="b-ok" id="giveBtn" ${picks.size?"":"disabled"}>Give ${name} ${fmt(curPot.amount)}${picks.size>1?" · split "+picks.size+" ways":""}</button>`;
+  }else if(s.status==="done"){rh=`<button class="b-raise" id="nextHand">Deal next hand</button>`}
+  else if(s.status==="over"){rh=`<div class="who">Only one player has chips left.</div><button class="b-raise" id="openSetup2">New game</button>`}
+  if(!adjustMode)rh+=`<div class="row"><button class="b-ghost" id="undo" ${s.prev?"":"disabled"}>Undo</button><button class="b-ghost" id="more">Menu</button></div>`;
+  $("#railIn").innerHTML=rh;$("#rail").hidden=false;
+  bindTable();bindCommon();
+}
+
+/* ================= events ================= */
+function bindLobby(){
+  $("#hostBtn").onclick=()=>startHost(newCode());
+  const j=()=>{const c=$("#joinCode").value.trim().toUpperCase();if(c.length>=4)startGuest(c)};
+  $("#joinBtn").onclick=j;$("#joinCode").addEventListener("keydown",e=>{if(e.key==="Enter")j()});
+}
+function bindCommon(){
+  $("#shareBtn")?.addEventListener("click",async()=>{
+    const url=location.origin+location.pathname+"#"+code;
+    try{if(navigator.share){await navigator.share({title:"Poker table "+code,url});return}}catch(e){return}
+    try{await navigator.clipboard.writeText(url);flash("Link copied: "+url)}catch(e){flash(url)}
+  });
+}
+function openSetup(){
+  setupDraft={names:S&&S.players?S.players.map(p=>p.name):["Jakub","Player 2","Player 3","Player 4","Player 5","Player 6"],start:S?.start||1000,sb:S?.sb||5,bb:S?.bb||10};
+  render();
+}
+function readDraft(){setupDraft.names=[...document.querySelectorAll("#names input")].map(i=>i.value);setupDraft.start=$("#stk").value;setupDraft.sb=$("#sb").value;setupDraft.bb=$("#bb").value}
+function bindSetup(){
+  $("#addP").onclick=()=>{readDraft();if(setupDraft.names.length<10){setupDraft.names.push("Player "+(setupDraft.names.length+1));render()}};
+  document.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{readDraft();if(setupDraft.names.length>2){setupDraft.names.splice(+b.dataset.rm,1);render()}});
+  $("#cancelSetup")?.addEventListener("click",()=>{setupDraft=null;render()});
+  $("#go").onclick=()=>{
+    readDraft();const n=setupDraft.names.map((x,i)=>x.trim()||"Player "+(i+1));
+    const stk=parseInt(setupDraft.start)||1000,sb=parseInt(setupDraft.sb)||5,bb=Math.max(parseInt(setupDraft.bb)||10,sb);
+    setupDraft=null;picks.clear();adjustMode=false;me=null;LS.set("cht-me",null);
+    commit(newGame(n,stk,sb,bb),false);
+  };
+}
+function bindTable(){
+  document.querySelectorAll("[data-act]").forEach(b=>b.onclick=()=>act(b.dataset.act));
+  const clampR=v=>{const p=S.players[S.turn];const lo=Math.min(S.currentBet+S.minRaise,p.bet+p.stack);return Math.max(lo,Math.min(v,p.bet+p.stack))};
+  $("#openRaise")?.addEventListener("click",()=>{raiseVal=clampR(0);raiseOpen=true;render()});
+  $("#rBack")?.addEventListener("click",()=>{raiseOpen=false;render()});
+  $("#rPlus")?.addEventListener("click",()=>{raiseVal=clampR((parseInt($("#rVal").value)||0)+S.bb);render()});
+  $("#rMinus")?.addEventListener("click",()=>{raiseVal=clampR((parseInt($("#rVal").value)||0)-S.bb);render()});
+  document.querySelectorAll("[data-rto]").forEach(b=>b.onclick=()=>{raiseVal=clampR(+b.dataset.rto);render()});
+  $("#rGo")?.addEventListener("click",()=>act("raise",clampR(parseInt($("#rVal").value)||0)));
+  document.querySelectorAll("[data-seat]").forEach(b=>b.addEventListener("click",()=>{
+    if(adjustMode)return;const p=S.players[+b.dataset.seat];
+    const cur=S.status==="award"&&S.pots?S.pots[S.potIdx]:null;
+    if(cur&&cur.elig.includes(p.id)){picks.has(p.id)?picks.delete(p.id):picks.add(p.id);render()}
+  }));
+  $("#giveBtn")?.addEventListener("click",()=>{const s=clone(S);payPot(s,s.potIdx,[...picks]);picks.clear();autoResolve(s);commit(s)});
+  $("#nextHand")?.addEventListener("click",()=>{picks.clear();commit(startHand(S))});
+  $("#openSetup2")?.addEventListener("click",openSetup);
+  $("#undo")?.addEventListener("click",()=>{if(!S.prev)return;picks.clear();raiseOpen=false;commit(clone(S.prev),false)});
+  $("#more")?.addEventListener("click",openMenu);
+  $("#adjCancel")?.addEventListener("click",()=>{adjustMode=false;render()});
+  $("#adjSave")?.addEventListener("click",()=>{const s=clone(S);s.players.forEach((p,i)=>{const v=parseInt($("#adj"+i).value);if(!isNaN(v)&&v>=0&&v!==p.stack){addLog(s,`${p.name} stack set to ${fmt(v)}`);p.stack=v;if(v>0&&s.status!=="betting")p.out=false}});adjustMode=false;commit(s)});
+}
+function openMenu(){
+  const ov=$("#ov"),sh=$("#sheet");
+  sh.innerHTML=`<div class="tag">Menu</div>
+  <div class="tag" style="margin-top:4px">Which player is on this phone?</div>
+  <div class="row">${S.players.map(p=>`<button class="${p.id===me?"b-ok":"b-ghost"}" data-me="${p.id}">${esc(p.name)}</button>`).join("")}</div>
+  <button class="b-ghost" id="mShare">Share table link (code ${code})</button>
+  <button class="b-ghost" id="mAdj">Adjust stacks (rebuy or fix a mistake)</button>
+  <button class="b-ghost" id="mBlinds">Double the blinds to ${fmt(S.sb*2)}/${fmt(S.bb*2)}</button>
+  <button class="b-ghost" id="mNew">New game…</button>
+  <div id="confirm"></div>
+  <button class="b-ghost" id="mClose">Close</button>`;
+  ov.hidden=false;
+  const close=()=>ov.hidden=true;
+  $("#mClose").onclick=close;ov.onclick=e=>{if(e.target===ov)close()};
+  sh.querySelectorAll("[data-me]").forEach(b=>b.onclick=()=>{me=b.dataset.me===me?null:b.dataset.me;LS.set("cht-me",me);close();render()});
+  $("#mShare").onclick=()=>{close();$("#shareBtn")?.click()};
+  $("#mAdj").onclick=()=>{close();adjustMode=true;render()};
+  $("#mBlinds").onclick=()=>{close();const s=clone(S);s.sb*=2;s.bb*=2;addLog(s,`Blinds up to ${fmt(s.sb)}/${fmt(s.bb)} from the next hand`);commit(s)};
+  $("#mNew").onclick=()=>{$("#confirm").innerHTML=`<p class="note">This ends the current game for everyone.</p><button class="b-all" id="mNewYes">End game and set up a new one</button>`;$("#mNewYes").onclick=()=>{close();openSetup()}};
+}
+
+/* ================= boot ================= */
+(function boot(){
+  const h=location.hash.replace("#","").toUpperCase();
+  const saved=LS.get("cht-host");
+  if(typeof Peer==="undefined"){document.getElementById("app").innerHTML=`<div class="banner">Couldn't load the connection library. Check the internet connection and reload.</div>`;return}
+  if(h&&saved&&saved.code===h)startHost(h,saved);   // host phone reloaded
+  else if(h)startGuest(h);                            // friend opened a shared link
+  else render();
+})();
+</script>
+</body>
+</html>
