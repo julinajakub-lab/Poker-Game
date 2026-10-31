@@ -45,24 +45,12 @@ input{font:inherit;color:var(--ivory);background:var(--rail);border:1px solid va
 .pc{position:absolute;width:26px;height:26px;border-radius:50%;--c:var(--chip0);
   background:radial-gradient(circle,var(--c) 0 33%,rgba(255,255,255,.9) 34% 39%,var(--c) 40% 62%,transparent 63%),repeating-conic-gradient(var(--chip-edge) 0 15deg,var(--c) 15deg 45deg);
   box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.3),0 2px 0 rgba(0,0,0,.45)}
-.av{--c:var(--chip0);width:42px;height:42px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--f-num);font-weight:800;font-size:17px;color:var(--card-ink);cursor:pointer;
+.av{--c:var(--chip0);width:42px;height:42px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--f-num);font-weight:800;font-size:17px;color:var(--card-ink);
   background:radial-gradient(circle,var(--chip-edge) 0 46%,var(--c) 47% 62%,transparent 63%),repeating-conic-gradient(var(--chip-edge) 0 14deg,var(--c) 14deg 45deg);
   box-shadow:inset 0 0 0 2px rgba(0,0,0,.3),0 2px 0 rgba(0,0,0,.45)}
 .c1{--c:var(--chip1)}.c2{--c:var(--chip2)}.c3{--c:var(--chip3)}.c4{--c:var(--chip4)}.c5{--c:var(--chip5)}
 .av.lg{width:64px;height:64px;font-size:24px}
 .mid{min-width:0;display:flex;flex-direction:column;gap:2px}
-.role{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ntag{background:var(--card-bg);color:var(--card-ink);border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.4)}
-.ntag .band{--c:var(--chip0);background:var(--c);color:#fff;text-align:center;padding:8px 12px 6px;font-family:var(--f-num);font-weight:800;letter-spacing:.14em;text-transform:uppercase;font-size:15px;line-height:1.1}
-.ntag .band small{display:block;font-size:11px;letter-spacing:.2em;opacity:.85;font-weight:600}
-.ntag .bd{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:center;padding:12px 16px 14px}
-.ntag .hand{font-family:var(--f-hand);font-size:40px;line-height:1;color:var(--card-ink)}
-.ntag .rl{font-family:var(--f-num);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:14px;color:var(--card-red)}
-.ntag .ln{grid-column:1/-1;font-size:14px;line-height:1.45;margin:0}
-.ntag .tell{grid-column:1/-1;font-size:13px;border-top:1px dashed rgba(22,32,28,.25);padding-top:8px;margin:0}
-.ntag .tell b{text-transform:uppercase;letter-spacing:.08em;font-size:11px;margin-right:6px}
-.ntag.c1 .band{--c:var(--chip1)}.ntag.c2 .band{--c:var(--chip2)}.ntag.c3 .band{--c:var(--chip3)}.ntag.c4 .band{--c:var(--chip4)}.ntag.c5 .band{--c:var(--chip5)}
-.castlist{display:flex;flex-direction:column;gap:12px}
 .pc.sm{position:relative;display:inline-block;width:12px;height:12px;vertical-align:-1px;margin-right:4px;box-shadow:none}
 .crown{width:18px;height:12px;fill:var(--brass);flex:none}
 .amt.bump{animation:bump .35s ease-out}
@@ -72,6 +60,18 @@ input{font:inherit;color:var(--ivory);background:var(--rail);border:1px solid va
 .pile.mini{height:28px;width:54px;margin:0 auto 6px}
 @keyframes drop{from{opacity:0;transform:translate(-50%,-30px)}}
 @media (prefers-reduced-motion:reduce){.amt.bump,.winner{animation:none}}
+.intro{display:flex;flex-direction:column;gap:12px;text-align:center;padding:6px 4px 2px}
+.intro h2{font-family:var(--f-num);font-size:40px;line-height:1;margin:0;letter-spacing:.01em}
+.intro p{margin:0;color:var(--ivory)}
+.intro .pile{margin:4px auto 0}
+.steps{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-direction:column;gap:10px;text-align:left;counter-reset:st}
+.steps li{display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start;font-size:14px;line-height:1.45;color:var(--muted)}
+.steps li b{color:var(--ivory)}
+.steps li::before{counter-increment:st;content:counter(st);width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--brass);color:var(--rail);font-family:var(--f-num);font-weight:800;font-size:16px}
+.love{font-family:var(--f-hand);font-size:30px;color:var(--brass);line-height:1.1;margin-top:4px}
+.love span{color:var(--red)}
+.foot{text-align:center;margin:18px 0 0;display:flex;flex-direction:column;gap:4px;align-items:center}
+.linkbtn{background:none;min-height:40px;color:var(--muted);text-decoration:underline;font-weight:600}
 .hbtn{background:var(--brass);color:var(--rail);min-height:36px;padding:0 12px;font-size:14px}
 .tr{display:flex;gap:8px;align-items:center}
 .hrank{display:grid;grid-template-columns:22px 1fr;gap:4px 10px;padding:10px 0;border-top:1px solid var(--line)}
@@ -370,8 +370,8 @@ function lobbyView(){
   return `<div class="hero"><div class="pile" aria-hidden="true">${[0,1,2,3,4,5].map(i=>`<span class="pc c${i}" style="left:${i*12}px;top:${i%2?4:10}px"></span>`).join("")}</div><div class="tag">JAMU poker night</div><h1>Brno Chip Table</h1><p>Chips on every phone. No chips on the table.</p></div>
   <div class="panel"><h2>Host the table</h2><p class="note">One phone hosts. Keep it plugged in with the screen on while you play.</p><button class="b-raise" id="hostBtn">Host a new table</button></div>
   <div class="panel"><h2>Join a table</h2><label for="joinCode">Table code</label><input id="joinCode" autocomplete="off" autocapitalize="characters" maxlength="6" placeholder="e.g. K7QM"><button class="b-call" id="joinBtn">Join</button></div>
-  <div class="panel"><h2>Tonight's cast</h2><p class="note">Name tags for everyone at the table.</p><button class="b-ghost" id="castBtn">Meet the cast</button></div>
-  <div class="panel"><h2>New to poker?</h2><p class="note">See which hands beat which, with examples.</p><button class="b-ghost hands-btn">Poker hands, best to worst</button></div>`;
+  <div class="panel"><h2>New to poker?</h2><p class="note">See which hands beat which, with examples.</p><button class="b-ghost hands-btn">Poker hands, best to worst</button></div>
+  <div class="foot"><div class="love">Made with <span>♥</span> by Jakub</div><button class="linkbtn" id="aboutBtn">What is this app?</button></div>`;
 }
 function setupView(){
   const d=setupDraft;
@@ -440,7 +440,7 @@ function render(){
     const inelig=curPot&&!curPot.elig.includes(p.id);
     const cls=["seat",i===s.turn&&s.status==="betting"?"turn":"",p.folded&&s.status!=="done"?"folded":"",p.out?"out":"",picks.has(p.id)?"pick":"",inelig&&!p.folded?"inelig":""].join(" ");
     const right=adjustMode?`<div class="adj"><input id="adj${i}" inputmode="numeric" value="${p.stack}" aria-label="${esc(p.name)} stack"></div>`:`<div class="right"><div class="st">${fmt(p.stack)}</div>${p.bet?`<div class="bet num"><span class="pc sm c${i%6}" aria-hidden="true"></span>bet ${fmt(p.bet)}</div>`:""}</div>`;
-    return `<${adjustMode?"div":"button"} class="${cls}" data-seat="${i}"><span class="av c${i%6}" data-tag="${i}" aria-label="${esc(p.name)}'s name tag">${initials(p.name)}</span><div class="mid"><div class="nm">${p.id===lead?CROWN:""}${esc(p.name)} ${badge(s,i)}</div><div class="role">${esc(castFor(p.name).role)}</div></div>${right}</${adjustMode?"div":"button"}>`}).join("")+`</div>`;
+    return `<${adjustMode?"div":"button"} class="${cls}" data-seat="${i}"><span class="av c${i%6}" aria-hidden="true">${initials(p.name)}</span><div class="mid"><div class="nm">${p.id===lead?CROWN:""}${esc(p.name)} ${badge(s,i)}</div></div>${right}</${adjustMode?"div":"button"}>`}).join("")+`</div>`;
   if(s.log?.length)h+=`<div class="log">${s.log.slice(0,6).map(l=>`<div>${esc(l)}</div>`).join("")}</div>`;
   app.innerHTML=h;
 
@@ -499,39 +499,31 @@ setInterval(()=>{const t=document.getElementById("timer");if(t)t.textContent=tim
 /* ================= events ================= */
 function bindLobby(){
   $("#hostBtn").onclick=()=>startHost(newCode());
-  $("#castBtn").onclick=()=>openCast(null);
+  $("#aboutBtn").onclick=openIntro;
   const j=()=>{const c=$("#joinCode").value.trim().toUpperCase();if(c.length>=4)startGuest(c)};
   $("#joinBtn").onclick=j;$("#joinCode").addEventListener("keydown",e=>{if(e.key==="Enter")j()});
   bindCommon();
 }
-/* ---- name tags: JAMU stage roles ---- */
-const CAST=[
-  {k:["jakub","kuba"],nick:"Jakub",role:"The Producer",line:"Runs events and quiz nights for a living, so he's used to everyone looking at him for the answer. Built this app between hands.",tell:"Starts explaining the rules when he has nothing."},
-  {k:["misa","michaela","misha"],nick:"Míša",role:"The Leading Lady",line:"Never misses a cue, especially when the cue is \"raise\". Takes her bow with your chips.",tell:"The bigger the smile, the smaller the hand. Or the other way round."},
-  {k:["dalik","dalibor","dali"],nick:"Dalík",role:"The Method Actor",line:"Has stayed in character as a man holding pocket aces since the start of the semester.",tell:"Completely unreadable. Possibly asleep."},
-  {k:["sylva","sylvie","sylvi"],nick:"Sylva",role:"The Director",line:"Calls the shots. Also calls your bluff. Will give notes on how you played the river.",tell:"Says \"From the top\" every time she loses a hand."},
-  {k:["lada","ladislav","laco"],nick:"Laďa",role:"The Understudy",line:"Waits patiently in the wings all night. Then walks on and takes the whole stage, and the pot.",tell:"Knows everyone's lines, including your hole cards."},
-  {k:["adam"],nick:"Adam",role:"The Critic",line:"Has reviewed your bluff and given it two stars. Applauds only when the money's his.",tell:"A slow clap means he's got nothing."}
-];
-const GUEST={role:"Special Guest",line:"Arrived unannounced. Plans to leave with everyone's chips.",tell:"Still learning the rules. Or so they say."};
-const norm=t=>String(t).normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().trim();
-function castFor(name){const w=norm(name).split(/\s+/)[0];return CAST.find(c=>c.k.some(k=>w===k||w.startsWith(k)))||GUEST}
 function initials(name){const w=String(name).trim().split(/\s+/);return esc(((w[0]||"?")[0]+(w[1]?w[1][0]:"")).toUpperCase())}
-function tagHtml(name,i){const c=castFor(name);
-  return `<div class="ntag c${i%6}"><div class="band"><small>Hello, my name is</small>${esc(c.role)}</div>
-  <div class="bd"><span class="av lg c${i%6}" aria-hidden="true">${initials(name)}</span><div><div class="hand">${esc(name)}</div><div class="rl">JAMU · ${esc(c.role)}</div></div>
-  <p class="ln">${esc(c.line)}</p><p class="tell"><b>Poker tell</b>${esc(c.tell)}</p></div></div>`}
-function castNames(){return S&&S.players?S.players.map(p=>p.name):CAST.map(c=>c.nick)}
-function openCast(only){
-  const ov=$("#ov"),sh=$("#sheet"),names=castNames();
-  const list=only!=null?[[names[only],only]]:names.map((n,i)=>[n,i]);
-  sh.innerHTML=`<div class="top"><span class="tag">${only!=null?"Name tag":"Tonight's cast"}</span><button class="b-ghost" id="cClose" style="min-height:36px;width:auto;flex:none">Close</button></div>
-  <div class="castlist">${list.map(([n,i])=>tagHtml(n,i)).join("")}</div>
-  ${only!=null?`<button class="b-ghost" id="cAll">See the whole cast</button>`:""}`;
+function openIntro(){
+  const ov=$("#ov"),sh=$("#sheet");
+  sh.innerHTML=`<div class="intro">
+  <div class="pile" aria-hidden="true">${[0,1,2,3,4,5].map(i=>`<span class="pc c${i}" style="left:${i*12}px;top:${i%2?4:10}px"></span>`).join("")}</div>
+  <div class="tag">Welcome to</div>
+  <h2>Brno Chip Table</h2>
+  <p>A chip counter for our poker night. The cards stay on the table, and the chips live on your phones.</p>
+  <ol class="steps">
+    <li><span><b>One phone hosts.</b> It opens the table and shares a 4-letter code.</span></li>
+    <li><span><b>Everyone joins</b> with the code and picks their name.</span></li>
+    <li><span><b>Play your turn</b> with Fold, Call, Raise or All in. The app counts the pot, blinds and side pots for you.</span></li>
+    <li><span><b>Showdown?</b> Flip your cards. Whoever has the best hand taps <b>I won</b>.</span></li>
+  </ol>
+  <p class="note">Not sure which hand beats which? Tap <b>Hands</b> anytime.</p>
+  <div class="love">Made with <span>♥</span> by Jakub</div>
+  <button class="b-raise" id="introGo">Let's play</button></div>`;
   ov.hidden=false;sh.scrollTop=0;
-  const close=()=>ov.hidden=true;
-  $("#cClose").onclick=close;ov.onclick=e=>{if(e.target===ov)close()};
-  $("#cAll")?.addEventListener("click",()=>openCast(null));
+  const close=()=>{ov.hidden=true;LS.set("cht-intro",1);render()};
+  $("#introGo").onclick=close;ov.onclick=e=>{if(e.target===ov)close()};
 }
 const HANDS=[
   ["Royal flush","A, K, Q, J, 10, all the same suit. The best hand in poker.","A♠ K♠ Q♠ J♠ 10♠"],
@@ -588,7 +580,6 @@ function bindSetup(){
   };
 }
 function bindTable(){
-  document.querySelectorAll(".av[data-tag]").forEach(a=>a.addEventListener("click",e=>{if(S.status==="award"||adjustMode)return;e.stopPropagation();openCast(+a.dataset.tag)}));
   document.querySelectorAll("[data-act]").forEach(b=>b.onclick=()=>act(b.dataset.act));
   $("#override")?.addEventListener("click",()=>{override=true;render()});
   const clampR=v=>{const p=S.players[S.turn];const lo=Math.min(S.currentBet+S.minRaise,p.bet+p.stack);return Math.max(lo,Math.min(v,p.bet+p.stack))};
@@ -618,8 +609,8 @@ function openMenu(){
   const mp=myPid(), mine=mp&&S.players.find(p=>p.id===mp);
   sh.innerHTML=`<div class="tag">Menu</div>
   <button class="b-ghost" id="mSeat">This phone: ${mine?esc(mine.name)+" (change)":"nobody yet, pick your player"}</button>
-  <button class="b-ghost" id="mCast">Meet the cast (name tags)</button>
   <button class="b-ghost" id="mShare">Share table link (code ${code})</button>
+  <button class="b-ghost" id="mAbout">About this app</button>
   <button class="b-ghost" id="mSound">Sound on this phone: ${soundOn?"on":"off"}</button>
   ${host?`
   ${timer?`<button class="b-ghost" id="mPause">${S.paused!=null?"Resume blind timer":"Pause blind timer"}</button>`:""}
@@ -632,7 +623,7 @@ function openMenu(){
   const close=()=>ov.hidden=true;
   $("#mClose").onclick=close;ov.onclick=e=>{if(e.target===ov)close()};
   $("#mSeat").onclick=()=>openSeats(false);
-  $("#mCast").onclick=()=>openCast(null);
+  $("#mAbout").onclick=openIntro;
   $("#mSound").onclick=()=>{soundOn=!soundOn;LS.set("cht-sound",soundOn);$("#mSound").textContent="Sound on this phone: "+(soundOn?"on":"off");sfx("chip")};
   $("#mShare").onclick=()=>{close();$("#shareBtn")?.click()};
   if(!host)return;
@@ -664,6 +655,7 @@ function openSeats(first){
   if(h&&saved&&saved.code===h)startHost(h,saved);   // host phone reloaded
   else if(h)startGuest(h);                            // friend opened a shared link
   else render();
+  if(!LS.get("cht-intro"))openIntro();
 })();
 </script>
 </body>
