@@ -10,6 +10,7 @@
 <style>
 :root{
   --felt:#0f2a22; --felt-2:#16362c; --rail:#0a1d17; --line:#24493d;
+  --card-bg:#f7f4ec; --card-ink:#16201c; --card-red:#c41f2e;
   --ivory:#efe9d8; --muted:#9db3a8; --brass:#e0b04a; --red:#d4483b; --blue:#3f7fd0; --ok:#5cc28a;
   --f-num:"Saira Condensed","Arial Narrow",system-ui,sans-serif;
   --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
@@ -33,6 +34,20 @@ input{font:inherit;color:var(--ivory);background:var(--rail);border:1px solid va
 .pot{text-align:center;padding:18px 0 14px}
 .pot .amt{font-family:var(--f-num);font-weight:800;font-size:64px;line-height:1;color:var(--brass)}
 .pot .sub{color:var(--muted);font-size:14px;margin-top:6px}
+.hbtn{background:var(--brass);color:var(--rail);min-height:36px;padding:0 12px;font-size:14px}
+.tr{display:flex;gap:8px;align-items:center}
+.hrank{display:grid;grid-template-columns:22px 1fr;gap:4px 10px;padding:10px 0;border-top:1px solid var(--line)}
+.hrank:first-of-type{border-top:0}
+.hrank .n{font-family:var(--f-num);font-size:20px;font-weight:700;color:var(--brass);line-height:1.2}
+.hrank h3{margin:0;font-size:16px}
+.hrank p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+.cards{grid-column:2;display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.card{--cc:var(--card-ink);background:var(--card-bg);color:var(--cc);border-radius:5px;width:34px;height:46px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;font-size:15px;line-height:1;box-shadow:0 1px 0 rgba(0,0,0,.4)}
+.card.r{--cc:var(--card-red)}
+.card.k{opacity:.38}
+.card i{font-style:normal;font-size:17px;margin-top:2px}
+.tips{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--line);padding-top:10px}
+.tips b{color:var(--ivory)}
 .timer{margin-top:8px;font-size:18px;font-weight:700;color:var(--ivory);letter-spacing:.02em}
 .street{display:flex;justify-content:center;gap:6px;margin-top:10px;flex-wrap:wrap}
 .street span{font-size:12px;text-transform:uppercase;letter-spacing:.08em;padding:4px 9px;border-radius:99px;border:1px solid var(--line);color:var(--muted)}
@@ -307,13 +322,14 @@ function act(kind,to){
 /* ================= render ================= */
 function header(){
   const n=role==="host"?conns.size:null;
-  return `<div class="top"><span class="live tag"><span class="dot ${connected?"on":""}"></span>${connected?(role==="host"?`Hosting · ${n} phone${n===1?"":"s"} joined`:"Live"):"Connecting…"}</span>
-  ${code?`<button class="code" id="shareBtn" aria-label="Share table code">${code}</button>`:""}</div>`;
+  return `<div class="top"><span class="live tag"><span class="dot ${connected?"on":""}"></span>${connected?(role==="host"?`Host · ${n} joined`:"Live"):"Connecting…"}</span>
+  <span class="tr"><button class="hbtn hands-btn">Hands</button>${code?`<button class="code" id="shareBtn" aria-label="Share table code">${code}</button>`:""}</span></div>`;
 }
 function lobbyView(){
   return `<div class="hero"><h1>Brno Chip Table</h1><p>Chips on every phone. No chips on the table.</p></div>
   <div class="panel"><h2>Host the table</h2><p class="note">One phone hosts. Keep it plugged in with the screen on while you play.</p><button class="b-raise" id="hostBtn">Host a new table</button></div>
-  <div class="panel"><h2>Join a table</h2><label for="joinCode">Table code</label><input id="joinCode" autocomplete="off" autocapitalize="characters" maxlength="6" placeholder="e.g. K7QM"><button class="b-call" id="joinBtn">Join</button></div>`;
+  <div class="panel"><h2>Join a table</h2><label for="joinCode">Table code</label><input id="joinCode" autocomplete="off" autocapitalize="characters" maxlength="6" placeholder="e.g. K7QM"><button class="b-call" id="joinBtn">Join</button></div>
+  <div class="panel"><h2>New to poker?</h2><p class="note">See which hands beat which, with examples.</p><button class="b-ghost hands-btn">Poker hands, best to worst</button></div>`;
 }
 function setupView(){
   const d=setupDraft;
@@ -388,7 +404,7 @@ function render(){
     rh=`<div class="who">Who wins the ${name}? Tap the winner, or two or more to split.</div><button class="b-ok" id="giveBtn" ${picks.size?"":"disabled"}>Give ${name} ${fmt(curPot.amount)}${picks.size>1?" · split "+picks.size+" ways":""}</button>`;
   }else if(s.status==="done"){rh=`<button class="b-raise" id="nextHand">Deal next hand</button>`}
   else if(s.status==="over"){rh=`<div class="who">Only one player has chips left.</div>${isHost()?`<button class="b-raise" id="openSetup2">New game</button>`:""}`}
-  if(!adjustMode)rh+=`<div class="row">${isHost()?`<button class="b-ghost" id="undo" ${s.prev?"":"disabled"}>Undo</button>`:""}<button class="b-ghost" id="more">Menu</button></div>`;
+  if(!adjustMode)rh+=`<div class="row">${isHost()?`<button class="b-ghost" id="undo" ${s.prev?"":"disabled"}>Undo</button>`:""}<button class="b-ghost hands-btn">Hands</button><button class="b-ghost" id="more">Menu</button></div>`;
   $("#railIn").innerHTML=rh;$("#rail").hidden=false;
   bindTable();bindCommon();
   // buzz when it becomes this phone's turn
@@ -412,8 +428,38 @@ function bindLobby(){
   $("#hostBtn").onclick=()=>startHost(newCode());
   const j=()=>{const c=$("#joinCode").value.trim().toUpperCase();if(c.length>=4)startGuest(c)};
   $("#joinBtn").onclick=j;$("#joinCode").addEventListener("keydown",e=>{if(e.key==="Enter")j()});
+  bindCommon();
+}
+const HANDS=[
+  ["Royal flush","A, K, Q, J, 10, all the same suit. The best hand in poker.","A♠ K♠ Q♠ J♠ 10♠"],
+  ["Straight flush","Five cards in a row, all the same suit.","9♥ 8♥ 7♥ 6♥ 5♥"],
+  ["Four of a kind","Four cards of the same rank.","K♣ K♦ K♥ K♠ -7♦"],
+  ["Full house","Three of a kind plus a pair.","Q♠ Q♥ Q♦ 9♣ 9♠"],
+  ["Flush","Any five cards of the same suit, not in a row.","A♦ J♦ 8♦ 6♦ 2♦"],
+  ["Straight","Five cards in a row, any suits. A-2-3-4-5 counts too.","10♣ 9♦ 8♠ 7♥ 6♣"],
+  ["Three of a kind","Three cards of the same rank.","7♠ 7♥ 7♦ -K♣ -2♦"],
+  ["Two pair","Two different pairs.","J♠ J♦ 4♣ 4♥ -A♠"],
+  ["One pair","Two cards of the same rank.","10♥ 10♣ -K♠ -8♦ -3♣"],
+  ["High card","Nothing above. Your highest card plays.","A♣ -J♦ -9♠ -5♥ -3♦"]
+];
+function cardHtml(c){const k=c[0]==="-";if(k)c=c.slice(1);const suit=c.slice(-1),rank=c.slice(0,-1);
+  return `<span class="card${"♥♦".includes(suit)?" r":""}${k?" k":""}">${rank}<i>${suit}</i></span>`}
+function openHands(){
+  const ov=$("#ov"),sh=$("#sheet");
+  sh.innerHTML=`<div class="top"><span class="tag">Poker hands · best to worst</span><button class="b-ghost" id="hClose" style="min-height:36px;width:auto;flex:none">Close</button></div>
+  <div>${HANDS.map((h,i)=>`<div class="hrank"><span class="n">${i+1}</span><div><h3>${h[0]}</h3><p>${h[1]}</p></div><div class="cards" aria-label="Example: ${h[2].replace(/-/g,"")}">${h[2].split(" ").map(cardHtml).join("")}</div></div>`).join("")}</div>
+  <div class="tips">
+    <div><b>Your hand</b> is the best 5 cards from your 2 cards plus the 5 on the table.</div>
+    <div><b>Same hand?</b> Higher cards win: a pair of kings beats a pair of queens. If still tied, the leftover cards (faded above) decide.</div>
+    <div><b>Exactly the same?</b> Suits don't count. Split the pot.</div>
+  </div>
+  <button class="b-ghost" id="hClose2">Close</button>`;
+  ov.hidden=false;sh.scrollTop=0;
+  const close=()=>ov.hidden=true;
+  $("#hClose").onclick=close;$("#hClose2").onclick=close;ov.onclick=e=>{if(e.target===ov)close()};
 }
 function bindCommon(){
+  document.querySelectorAll(".hands-btn").forEach(b=>b.onclick=openHands);
   $("#shareBtn")?.addEventListener("click",async()=>{
     const url=location.origin+location.pathname+"#"+code;
     try{if(navigator.share){await navigator.share({title:"Poker table "+code,url});return}}catch(e){return}
