@@ -442,7 +442,10 @@ function render(){
     }
   }else if(s.status==="award"&&curPot){
     const name=s.pots.length>1?(s.potIdx===0?"main pot":"side pot "+s.potIdx):"pot";
-    rh=`<div class="who">Who wins the ${name}? Tap the winner, or two or more to split.</div><button class="b-ok" id="giveBtn" ${picks.size?"":"disabled"}>Give ${name} ${fmt(curPot.amount)}${picks.size>1?" · split "+picks.size+" ways":""}</button>`;
+    const mp=myPid(), iCan=!!mp&&curPot.elig.includes(mp);
+    rh=(iCan?`<button class="b-ok" id="iWon">I won the ${name} · take ${fmt(curPot.amount)}</button>`:"")+
+      `<div class="who">${iCan?"Split or someone else won? Tap":"Who wins the "+name+"? Tap"} the winner, or two or more to split.</div>
+      <button class="${iCan?"b-ghost":"b-ok"}" id="giveBtn" ${picks.size?"":"disabled"}>Give ${name} ${fmt(curPot.amount)}${picks.size>1?" · split "+picks.size+" ways":""}</button>`;
   }else if(s.status==="done"){rh=`<button class="b-raise" id="nextHand">Deal next hand</button>`}
   else if(s.status==="over"){rh=`<div class="who">Only one player has chips left.</div>${isHost()?`<button class="b-raise" id="openSetup2">New game</button>`:""}`}
   if(!adjustMode)rh+=`<div class="row">${isHost()?`<button class="b-ghost" id="undo" ${s.prev?"":"disabled"}>Undo</button>`:""}<button class="b-ghost hands-btn">Hands</button><button class="b-ghost" id="more">Menu</button></div>`;
@@ -545,6 +548,7 @@ function bindTable(){
     const cur=S.status==="award"&&S.pots?S.pots[S.potIdx]:null;
     if(cur&&cur.elig.includes(p.id)){picks.has(p.id)?picks.delete(p.id):picks.add(p.id);render()}
   }));
+  $("#iWon")?.addEventListener("click",()=>{const mp=myPid();const s=clone(S);const cur=s.pots&&s.pots[s.potIdx];if(!mp||!cur||!cur.elig.includes(mp))return;payPot(s,s.potIdx,[mp]);picks.clear();autoResolve(s);commit(s)});
   $("#giveBtn")?.addEventListener("click",()=>{const s=clone(S);payPot(s,s.potIdx,[...picks]);picks.clear();autoResolve(s);commit(s)});
   $("#nextHand")?.addEventListener("click",()=>{picks.clear();commit(startHand(S))});
   $("#openSetup2")?.addEventListener("click",openSetup);
