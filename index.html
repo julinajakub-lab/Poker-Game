@@ -10,6 +10,7 @@
 <style>
 :root{
   --felt:#0f2a22; --felt-2:#16362c; --rail:#0a1d17; --line:#24493d;
+  --chip0:#c62f2f; --chip1:#2e63c9; --chip2:#1c8a4e; --chip3:#232323; --chip-edge:#f4efe3;
   --card-bg:#f7f4ec; --card-ink:#16201c; --card-red:#c41f2e;
   --ivory:#efe9d8; --muted:#9db3a8; --brass:#e0b04a; --red:#d4483b; --blue:#3f7fd0; --ok:#5cc28a;
   --f-num:"Saira Condensed","Arial Narrow",system-ui,sans-serif;
@@ -34,6 +35,20 @@ input{font:inherit;color:var(--ivory);background:var(--rail);border:1px solid va
 .pot{text-align:center;padding:18px 0 14px}
 .pot .amt{font-family:var(--f-num);font-weight:800;font-size:64px;line-height:1;color:var(--brass)}
 .pot .sub{color:var(--muted);font-size:14px;margin-top:6px}
+.pile{position:relative;height:40px;margin:8px auto 2px;width:90px}
+.pc{position:absolute;width:26px;height:26px;border-radius:50%;--c:var(--chip0);
+  background:radial-gradient(circle,var(--c) 0 33%,rgba(255,255,255,.9) 34% 39%,var(--c) 40% 62%,transparent 63%),repeating-conic-gradient(var(--chip-edge) 0 15deg,var(--c) 15deg 45deg);
+  box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.3),0 2px 0 rgba(0,0,0,.45)}
+.pc.c1{--c:var(--chip1)}.pc.c2{--c:var(--chip2)}.pc.c3{--c:var(--chip3)}
+.pc.sm{position:relative;display:inline-block;width:12px;height:12px;vertical-align:-1px;margin-right:4px;box-shadow:none}
+.crown{width:18px;height:12px;fill:var(--brass);flex:none}
+.amt.bump{animation:bump .35s ease-out}
+@keyframes bump{40%{transform:scale(1.08)}}
+.winner{position:fixed;left:50%;top:calc(16px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:20;background:var(--brass);color:var(--rail);font-weight:800;font-size:20px;text-align:center;padding:14px 22px;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.5);max-width:calc(100% - 32px);font-family:var(--f-num);letter-spacing:.02em;animation:drop .4s ease-out;transition:opacity .4s,transform .4s}
+.winner.out{opacity:0;transform:translate(-50%,-20px)}
+.pile.mini{height:28px;width:54px;margin:0 auto 6px}
+@keyframes drop{from{opacity:0;transform:translate(-50%,-30px)}}
+@media (prefers-reduced-motion:reduce){.amt.bump,.winner{animation:none}}
 .hbtn{background:var(--brass);color:var(--rail);min-height:36px;padding:0 12px;font-size:14px}
 .tr{display:flex;gap:8px;align-items:center}
 .hrank{display:grid;grid-template-columns:22px 1fr;gap:4px 10px;padding:10px 0;border-top:1px solid var(--line)}
@@ -274,6 +289,7 @@ function toAward(s){
 function autoResolve(s){
   while(s.potIdx<s.pots.length&&s.pots[s.potIdx].elig.length===1){payPot(s,s.potIdx,s.pots[s.potIdx].elig)}
   if(s.potIdx>=s.pots.length)finishHand(s);
+  delete s._wb;
 }
 function payPot(s,k,ids){
   const pot=s.pots[k];const w=s.players.filter(p=>ids.includes(p.id));
@@ -283,6 +299,8 @@ function payPot(s,k,ids){
   pot.winners=ids;s.pot-=pot.amount;s.potIdx=k+1;
   const label=s.pots.length>1?(k===0?"main pot":`side pot ${k}`):"the pot";
   addLog(s,`${w.map(p=>p.name).join(" + ")} win${w.length>1?"":"s"} ${label} (${fmt(pot.amount)})`);
+  if(!s._wb){s.win={id:Math.random().toString(36).slice(2),lines:[]};s._wb=1}
+  s.win.lines.push(`${w.map(p=>p.name).join(" + ")} win${w.length>1?"":"s"} ${fmt(pot.amount)}`);
 }
 function finishHand(s){s.status=s.players.filter(p=>p.stack>0).length<2?"over":"done";s.pot=0;s.turn=-1}
 
@@ -344,6 +362,26 @@ function setupView(){
   ${S&&S.players?`<button class="b-ghost" id="cancelSetup">Back to the table</button>`:""}
   <p class="note">Seat order is the order above, going clockwise.</p></div>`;
 }
+const CROWN=`<svg class="crown" viewBox="0 0 24 16" aria-label="Chip leader"><path d="M2 14 0 3l6 5 6-8 6 8 6-5-2 11z"/></svg>`;
+function leaderId(s){const a=s.players.filter(p=>!p.out);if(a.length<2)return null;const m=Math.max(...a.map(p=>p.stack+p.bet));const top=a.filter(p=>p.stack+p.bet===m);return top.length===1?top[0].id:null}
+function potChips(amount,bb){const n=amount>0?Math.min(7,Math.max(1,Math.ceil(Math.log2(amount/bb+1)))):0;
+  const pos=[[0,6],[-16,8],[16,8],[-8,0],[8,0],[0,-7],[-24,2]];
+  return `<div class="pile" aria-hidden="true">${pos.slice(0,n).map((q,i)=>`<span class="pc c${i%4}" style="left:calc(50% - 13px + ${q[0]}px);top:${q[1]+8}px"></span>`).join("")}</div>`}
+/* sound: tiny synthesized clicks, no files */
+let AC=null, soundOn=LS.get("cht-sound")!==false;
+document.addEventListener("pointerdown",()=>{if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}else if(AC.state==="suspended")AC.resume()},{passive:true});
+function tone(f,t0,d,type="sine",v=.15){const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,AC.currentTime+t0);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+t0+d);o.connect(g).connect(AC.destination);o.start(AC.currentTime+t0);o.stop(AC.currentTime+t0+d+.02)}
+function sfx(kind){if(!soundOn||!AC)return;try{
+  if(kind==="chip"){tone(2600,0,.05,"triangle",.12);tone(3100,.06,.05,"triangle",.1)}
+  if(kind==="turn"){tone(880,0,.12);tone(1320,.12,.18)}
+  if(kind==="win"){[523,659,784,1047].forEach((f,i)=>tone(f,i*.09,.25,"triangle",.12))}
+}catch(e){}}
+let lastPotSeen=null,lastWinId;
+function celebrate(lines){
+  const d=document.createElement("div");d.className="winner";d.setAttribute("role","status");
+  d.innerHTML=`<div class="pile mini" aria-hidden="true"><span class="pc c0" style="left:0"></span><span class="pc c1" style="left:14px"></span><span class="pc c2" style="left:28px"></span></div>${lines.map(esc).join("<br>")}`;
+  document.body.appendChild(d);setTimeout(()=>d.classList.add("out"),2600);setTimeout(()=>d.remove(),3100);
+}
 function badge(s,i){const p=s.players[i];let b="";
   if(p.id===myPid())b+=`<span class="chip c-me">YOU</span>`;
   else if(!(s.claims||{})[p.id])b+=`<span class="chip c-f">NO PHONE</span>`;
@@ -364,18 +402,21 @@ function render(){
   const s=S, toAct=s.players[s.turn];
   const curPot=s.status==="award"&&s.pots?s.pots[s.potIdx]:null;
   let h=header();
-  h+=`<div class="pot"><div class="tag">Hand ${s.hand} · Blinds ${fmt(s.sb)}/${fmt(s.bb)}</div><div class="amt num">${fmt(s.status==="award"?s.pot:potTotal(s))}</div>
+  const potNow=s.status==="award"?s.pot:potTotal(s);
+  const bump=lastPotSeen!=null&&potNow>lastPotSeen&&s.status==="betting";
+  h+=`<div class="pot"><div class="tag">Hand ${s.hand} · Blinds ${fmt(s.sb)}/${fmt(s.bb)}</div>${potChips(potNow,s.bb)}<div class="amt num${bump?" bump":""}">${fmt(potNow)}</div>
   <div class="sub">${s.status==="award"?"Showdown":s.status==="over"?"Game over":s.status==="done"?"Hand finished":"In the pot"}</div>
   ${s.levelMs&&s.status!=="over"?`<div class="timer num" id="timer">${esc(timerText())}</div>`:""}
   ${s.status==="betting"?`<div class="street">${STREETS.map((t,i)=>`<span class="${i===s.street?"on":""}">${t}</span>`).join("")}</div>`:""}</div>`;
   if(s.status==="award"&&s.pots&&s.pots.length>1){
     h+=`<div class="panel potlist">${s.pots.map((p,k)=>`<div class="${k===s.potIdx?"cur":k<s.potIdx?"done":""}"><span>${k===0?"Main pot":"Side pot "+k} · ${p.elig.length} in</span><span class="num">${fmt(p.amount)}</span></div>`).join("")}</div>`;
   }
+  const lead=leaderId(s);
   h+=`<div class="seats">`+s.players.map((p,i)=>{
     const inelig=curPot&&!curPot.elig.includes(p.id);
     const cls=["seat",i===s.turn&&s.status==="betting"?"turn":"",p.folded&&s.status!=="done"?"folded":"",p.out?"out":"",picks.has(p.id)?"pick":"",inelig&&!p.folded?"inelig":""].join(" ");
-    const right=adjustMode?`<div class="adj"><input id="adj${i}" inputmode="numeric" value="${p.stack}" aria-label="${esc(p.name)} stack"></div>`:`<div class="right"><div class="st">${fmt(p.stack)}</div>${p.bet?`<div class="bet num">bet ${fmt(p.bet)}</div>`:""}</div>`;
-    return `<${adjustMode?"div":"button"} class="${cls}" data-seat="${i}"><div class="nm">${esc(p.name)} ${badge(s,i)}</div>${right}</${adjustMode?"div":"button"}>`}).join("")+`</div>`;
+    const right=adjustMode?`<div class="adj"><input id="adj${i}" inputmode="numeric" value="${p.stack}" aria-label="${esc(p.name)} stack"></div>`:`<div class="right"><div class="st">${fmt(p.stack)}</div>${p.bet?`<div class="bet num"><span class="pc sm c${i%4}" aria-hidden="true"></span>bet ${fmt(p.bet)}</div>`:""}</div>`;
+    return `<${adjustMode?"div":"button"} class="${cls}" data-seat="${i}"><div class="nm">${p.id===lead?CROWN:""}${esc(p.name)} ${badge(s,i)}</div>${right}</${adjustMode?"div":"button"}>`}).join("")+`</div>`;
   if(s.log?.length)h+=`<div class="log">${s.log.slice(0,6).map(l=>`<div>${esc(l)}</div>`).join("")}</div>`;
   app.innerHTML=h;
 
@@ -409,8 +450,13 @@ function render(){
   bindTable();bindCommon();
   // buzz when it becomes this phone's turn
   const mineNow=s.status==="betting"&&!!toAct&&myPid()===toAct.id;
-  if(mineNow&&!lastTurnMine){try{navigator.vibrate&&navigator.vibrate([120,60,120])}catch(e){}}
-  lastTurnMine=mineNow;
+  if(mineNow&&!lastTurnMine){try{navigator.vibrate&&navigator.vibrate([120,60,120])}catch(e){}sfx("turn")}
+  else if(bump)sfx("chip");
+  lastTurnMine=mineNow;lastPotSeen=potNow;
+  // winner banner on every phone (not for wins that happened before this phone joined)
+  const wid=s.win?s.win.id:null;
+  if(lastWinId===undefined)lastWinId=wid;
+  else if(wid&&wid!==lastWinId){lastWinId=wid;celebrate(s.win.lines);sfx("win")}
   // first time at a table: ask who this phone is
   if(!myPid()&&!seatAsked&&$("#ov").hidden){seatAsked=true;openSeats(true)}
 }
@@ -514,6 +560,7 @@ function openMenu(){
   sh.innerHTML=`<div class="tag">Menu</div>
   <button class="b-ghost" id="mSeat">This phone: ${mine?esc(mine.name)+" (change)":"nobody yet, pick your player"}</button>
   <button class="b-ghost" id="mShare">Share table link (code ${code})</button>
+  <button class="b-ghost" id="mSound">Sound on this phone: ${soundOn?"on":"off"}</button>
   ${host?`
   ${timer?`<button class="b-ghost" id="mPause">${S.paused!=null?"Resume blind timer":"Pause blind timer"}</button>`:""}
   <button class="b-ghost" id="mBlinds">Double the blinds now to ${fmt(S.sb*2)}/${fmt(S.bb*2)}</button>
@@ -525,6 +572,7 @@ function openMenu(){
   const close=()=>ov.hidden=true;
   $("#mClose").onclick=close;ov.onclick=e=>{if(e.target===ov)close()};
   $("#mSeat").onclick=()=>openSeats(false);
+  $("#mSound").onclick=()=>{soundOn=!soundOn;LS.set("cht-sound",soundOn);$("#mSound").textContent="Sound on this phone: "+(soundOn?"on":"off");sfx("chip")};
   $("#mShare").onclick=()=>{close();$("#shareBtn")?.click()};
   if(!host)return;
   $("#mPause")?.addEventListener("click",()=>{close();const s=clone(S);
